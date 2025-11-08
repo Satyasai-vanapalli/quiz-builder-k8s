@@ -1,14 +1,17 @@
 # Backend Dockerfile
-FROM node:18-alpine
+FROM maven:3.8.4-openjdk-17 AS build
 
 WORKDIR /app
+COPY pom.xml .
+COPY src ./src
 
-COPY package*.json ./
+RUN mvn clean package -DskipTests
 
-RUN npm install
+FROM openjdk:17-slim
 
-COPY . .
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 
-EXPOSE 5000
+EXPOSE 8080
 
-CMD ["npm", "start"]
+CMD ["java", "-jar", "app.jar"]
